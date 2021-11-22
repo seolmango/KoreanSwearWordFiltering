@@ -4,7 +4,9 @@
 
 __all__ =['DataLoadException',
           'BadWordsException',
-          'FilterException'
+          'FilterException',
+          'TextModifyException',
+          'NoRelateFilterException'
           ]
 
 class DataLoadException(Exception):
@@ -22,5 +24,17 @@ class BadWordsException(DataLoadException):
 class FilterException(DataLoadException):
     """
     필터 설정 파일을 불러오던중 에러가 발생하면 발생하는 에러입니다.
+    """
+    pass
+
+class TextModifyException(Exception):
+    """
+    텍스트 처리 중 에러가 발생하면 발생하는 에러입니다.
+    """
+    pass
+
+class NoRelateFilterException(TextModifyException):
+    """
+    연관된 필터를 찾을 수 없는 경우 발생하는 에러입니다.
     """
     pass

@@ -2,7 +2,7 @@
 한국어 욕설 탐지 모듈에 사용되는 도구들을 모아놓은 파일입니다.
 """
 
-__all__ = ['tokenization_word','remove_duplicate_token','detach_korean_word','accuracy_improvement']
+__all__ = ['tokenization_word','remove_duplicate_token','detach_korean_word','accuracy_improvement','switch_token_num']
 
 KOREAN_FIRST = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ',
               'ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
@@ -15,6 +15,7 @@ FREQUENT_HIGH = {1: 2.8848931924611136, 2: 2.558925411794167, 3: 2.3, 4: 2.09432
                      5: 1.9309573444801933, 6: 1.8011872336272723, 7: 1.6981071705534974, 8: 1.616227766016838,
                      9: 1.551188643150958, 10: 1.499526231496888, 11: 1.4584893192461115, 12: 1.4258925411794168,
                      13: 1.4000000000000001, 14: 1.3794328234724282, 15: 1.3630957344480195}
+from errors import *
 
 def tokenization_word(word : str) -> list:
     """입력된 문장을 토큰화합니다
@@ -51,11 +52,12 @@ def remove_duplicate_token(token_word : list) -> list:
     result.append(token_word[-1])
     return result
 
-def detach_korean_word(token_word : list) -> list:
+def detach_korean_word(token_word : list , first : bool) -> list:
     """입력된 한국어를 초성,중성,종성으로 쪼개어 반환합니다.
 
     Args:
         token_word (list): 토큰화가 완료된 문장의 리스트입니다.
+        first (bool): 초성을 추출할지 여부입니다.
 
     Returns:
         list: 초성,중성,종성으로 분리가 완료된 리스트입니다.
@@ -74,15 +76,53 @@ def detach_korean_word(token_word : list) -> list:
                     pass
                 else:
                     result.append((first,token_word[i][1]))
-                    result.append((second,token_word[i][1]))
+                    if not first:
+                        result.append((second,token_word[i][1]))
             else:
                 result.append((first,token_word[i][1]))
-                result.append((second,token_word[i][1]))
-            if third != '':
+                if not first:
+                    result.append((second,token_word[i][1]))
+            if third != '' and not first:
                 result.append((third,token_word[i][1]))
         else:
             result.append(token_word[i])
     return result[2:]
+
+def switch_token_num(token_word : list,filters_object,first : bool) -> dict:
+    """토큰화된 문장을 숫자로 바꾸어 리턴합니다
+
+    Args:
+        token_word (list): 토큰화된 문장입니다
+        filter_object ([type]): 필터 클래스입니다
+
+    Returns:
+        dict: {필터이름:내용} 내용입니다
+    """
+    result = {}
+    for filter_name in filters_object.FILTERS:
+        filter_object = filters_object.FILTERS[filter_name]
+        if (filter_object.setting == 'KOFIRST') == first:
+            res = []
+            for i in range(len(token_word)):
+                if token_word[i][0] in filter_object.data:
+                    res.append((filter_object.data[token_word[i][0]],token_word[i][1]))
+                else:
+                    exist = False
+                    j = 0
+                    while not exist and j < len(filter_object.relate):
+                        k = filter_object.relate[j]
+                        if not k in filters_object.FILTERS:
+                            raise NoRelateFilterException(f"{i}는 존재하지 않는 필터입니다")
+                        re_filter = filters_object.FILTERS[k]
+                        if token_word[i][0] in re_filter.data:
+                            res.append((re_filter.data[token_word[i][0]],token_word[i][1]))
+                            exist = True
+                        else:
+                            pass
+                result[filter_name] = res
+        else:
+            pass
+    return result
 
 def accuracy_improvement(x : int) -> int:
     """더 좋은 정확도를 제공하기위해 사용하는 함수입니다.

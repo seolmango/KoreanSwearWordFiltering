@@ -14,8 +14,17 @@ class filter():
     """
     def __init__(self, filter_name,filter_setting):
         self.name = filter_name
-        self.setting = filter_setting
         self.data = {}
+        self.relate = []
+        a = filter_setting.split('_')
+        if not 'BASE' in a:
+            self.relate.append('base_filter')
+            for i in a:
+                if i != 'DEFAULT' or i != 'KOFRIST':
+                    self.relate.append(i)
+        self.setting = a[0]
+        
+            
     
     def load_data(self, name : str, data : int):
         """데이터 파일에서 읽어온 데이터를 가공하여 저장합니다
