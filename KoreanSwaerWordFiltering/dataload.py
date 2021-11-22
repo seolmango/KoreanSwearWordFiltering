@@ -6,6 +6,8 @@ from os import name
 import re
 from errors import *
 
+__all__ = ['load_badword_data','load_filter_data']
+
 class filter():
     """욕설 필터링 모듈의 필터 클래스입니다.
 
@@ -99,6 +101,6 @@ def load_filter_data(source_path : str) -> dict:
         line = f.readline()
     return result
             
-
-print(load_badword_data('KoreanSwaerWordFiltering\Data\BadWords.txt'))
-print(load_filter_data('KoreanSwaerWordFiltering\Data\BasicData.txt'))
+if __name__ == '__main__':
+    print(load_badword_data('KoreanSwaerWordFiltering\Data\BadWords.txt'))
+    print(load_filter_data('KoreanSwaerWordFiltering\Data\BasicData.txt'))
